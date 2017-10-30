@@ -1,0 +1,3 @@
+[submodule "libs/beast"]
+	path = libs/beast
+	url = git@github.com:boostorg/beast.git
