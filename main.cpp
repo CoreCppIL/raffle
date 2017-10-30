@@ -5,13 +5,15 @@
 #include <iostream>
 
 #include "beast_https_get.hpp"
-
+#include "libs/Range-V3-VS2015/include/range/v3/all.hpp"
 #include "json.hpp"
 
 using std::cout;
 using std::flush;
 using std::cin;
 using std::cerr;
+
+using namespace ranges;
 
 int main(int argc, char** argv)
 {
@@ -43,26 +45,24 @@ int main(int argc, char** argv)
       return EXIT_FAILURE;
    }
 
-   std::vector<std::string> rsvps;
-   for (auto&& e:json)
-      if ("yes" == e["response"])
-         rsvps.push_back(e["member"]["name"].dump());
-
    std::random_device rd;
-   std::mt19937 g(rd());
-   std::shuffle(rsvps.begin(), rsvps.end(), g);
-   
-   while (0 < rsvps.size())
-   {
-      cout << "And the winner is: " << rsvps.back() << "\n\n";
-      std::string more;
+   std::mt19937 gen(rd());
 
-      cout << "Pick another? " << flush;
+   auto rsvps = json
+      | view::remove_if([](auto&& elem) { return "no" == elem["response"]; })
+      | view::transform([](auto&& elem) { return elem["member"]["name"].dump(); })
+      | to_vector
+      | action::shuffle(gen);
+
+   for (auto&& name : rsvps)
+   {
+      cout << "And the winner is: " << name << "\n\n";
+      std::string more;
+      cout << "Another? " << flush;
       cin >> more;
       if ("yes" != more)
          break;
-      rsvps.pop_back();
-   }        
+   }
 
    return EXIT_SUCCESS;
 }
