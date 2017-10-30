@@ -1,113 +1,68 @@
-//
-// Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
-// Official repository: https://github.com/boostorg/beast
-//
-
-//------------------------------------------------------------------------------
-//
-// Example: HTTP SSL client, synchronous
-//
-//------------------------------------------------------------------------------
-
-#include "libs/beast/example/common/root_certificates.hpp"
-
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
-#include <cstdlib>
-#include <iostream>
+#include <random>
+#include <vector>
+#include <algorithm>
 #include <string>
+#include <iostream>
 
-using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
-namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
+#include "beast_https_get.hpp"
 
+#include "json.hpp"
 
-// Performs an HTTP GET and prints the response
+using std::cout;
+using std::flush;
+using std::cin;
+using std::cerr;
+
 int main(int argc, char** argv)
 {
-   try
+   std::string host = "api.meetup.com";
+   std::string target = "/CoreCpp/events/244537670/rsvps?photo-host=public&only=member.name%2Cresponse";
+   std::string sig_id, key;
+   if (argc == 3 && argv[1] && argv[2])
    {
-      // Check command line arguments.
-      if (argc != 4)
-      {
-         std::cerr <<
-            "Usage: http-client-sync-ssl <host> <port> <target>\n" <<
-            "Example:\n" <<
-            "    http-client-sync-ssl www.example.com 443 /\n";
-         return EXIT_FAILURE;
-      }
-      auto const host = argv[1];
-      auto const port = argv[2];
-      auto const target = argv[3];
-
-      // The io_service is required for all I/O
-      boost::asio::io_service ios;
-
-      // The SSL context is required, and holds certificates
-      ssl::context ctx{ ssl::context::sslv23_client };
-
-      // This holds the root certificate used for verification
-      load_root_certificates(ctx);
-
-      // These objects perform our I/O
-      tcp::resolver resolver{ ios };
-      ssl::stream<tcp::socket> stream{ ios, ctx };
-
-      // Look up the domain name
-      auto const lookup = resolver.resolve({ host, port });
-
-      // Make the connection on the IP address we get from a lookup
-      boost::asio::connect(stream.next_layer(), lookup);
-
-      // Perform the SSL handshake
-      stream.handshake(ssl::stream_base::client);
-
-      // Set up an HTTP GET request message
-      http::request<http::string_body> req{ http::verb::get, target, 11 };
-      req.set(http::field::host, host);
-      req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-
-      // Send the HTTP request to the remote host
-      http::write(stream, req);
-
-      // This buffer is used for reading and must be persisted
-      boost::beast::flat_buffer buffer;
-
-      // Declare a container to hold the response
-      http::response<http::dynamic_body> res;
-
-      // Receive the HTTP response
-      http::read(stream, buffer, res);
-
-      // Write the message to standard out
-      std::cout << res << std::endl;
-
-      // Gracefully close the stream
-      boost::system::error_code ec;
-      stream.shutdown(ec);
-      if (ec == boost::asio::error::eof)
-      {
-         // Rationale:
-         // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-         ec.assign(0, ec.category());
-      }
-      if (ec)
-         throw boost::system::system_error{ ec };
-
-      // If we get here then the connection is closed gracefully
+      sig_id = argv[1];
+      key = argv[2];
    }
-   catch (std::exception const& e)
+
+   target += "&sig_id=" + sig_id;
+   target += "&sig=" + key;
+
+   auto body_json = https_get(host, target);
+
+   if (body_json.empty())
    {
-      std::cerr << "Error: " << e.what() << std::endl;
+      cerr << "MeetUp API REST call failed :-(\n";
       return EXIT_FAILURE;
    }
+
+   auto json = nlohmann::json::parse(body_json);
+
+   if (json.find("errors") != json.end())
+   {
+      cerr << "REST call error :-(\n";
+      return EXIT_FAILURE;
+   }
+
+   std::vector<std::string> rsvps;
+   for (auto&& e:json)
+      if ("yes" == e["response"])
+         rsvps.push_back(e["member"]["name"].dump());
+
+   std::random_device rd;
+   std::mt19937 g(rd());
+   std::shuffle(rsvps.begin(), rsvps.end(), g);
+   
+   while (0 < rsvps.size())
+   {
+      cout << "And the winner is: " << rsvps.back() << "\n\n";
+      std::string more;
+
+      cout << "Pick another? " << flush;
+      cin >> more;
+      if ("yes" != more)
+         break;
+      rsvps.pop_back();
+   }        
+
    return EXIT_SUCCESS;
 }
