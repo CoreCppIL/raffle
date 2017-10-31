@@ -3,66 +3,60 @@
 #include <algorithm>
 #include <string>
 #include <iostream>
-
+#include <filesystem>
 #include "beast_https_get.hpp"
 #include "libs/Range-V3-VS2015/include/range/v3/all.hpp"
 #include "json.hpp"
+
+using namespace ranges;
+using namespace std::string_literals;
+namespace fs = std::experimental::filesystem;
 
 using std::cout;
 using std::flush;
 using std::cin;
 using std::cerr;
 
-using namespace ranges;
-
-int main(int argc, char** argv)
+int main(int argc, char** argv) try
 {
-   std::string host = "api.meetup.com";
-   std::string target = "/CoreCpp/events/244537670/rsvps?photo-host=public&only=member.name%2Cresponse";
-   std::string sig_id, key;
-   if (argc == 3 && argv[1] && argv[2])
-   {
-      sig_id = argv[1];
-      key = argv[2];
-   }
+   if (argc < 3)
+      return cout << "Usage: " << fs::path(argv[0]).filename() << " <sig_id> <API key>\n", EXIT_SUCCESS;
 
-   target += "&sig_id=" + sig_id;
-   target += "&sig=" + key;
+   std::string sig_id = argv[1], key = argv[2];
 
-   auto body_json = https_get(host, target);
-
+   auto rest_call = "/CoreCpp/events/244537670/rsvps?photo-host=public&only=member.name%2Cresponse"s;
+   auto body_json = https_get("api.meetup.com", rest_call + "&sig_id=" + sig_id + "&sig=" + key);
    if (body_json.empty())
-   {
-      cerr << "MeetUp API REST call failed :-(\n";
-      return EXIT_FAILURE;
-   }
+      throw std::runtime_error("MeetUp API REST call failed.");
 
    auto json = nlohmann::json::parse(body_json);
-
    if (json.find("errors") != json.end())
-   {
-      cerr << "REST call error :-(\n";
-      return EXIT_FAILURE;
-   }
+      throw std::runtime_error("REST call error in JSON:" + json["errors"].dump());
 
-   std::random_device rd;
-   std::mt19937 gen(rd());
-
-   auto rsvps = json
-      | view::remove_if([](auto&& elem) { return "no" == elem["response"]; })
-      | view::transform([](auto&& elem) { return elem["member"]["name"].dump(); })
-      | to_vector
-      | action::shuffle(gen);
+   std::mt19937 gen;
+   auto rsvps = json                                                                // json is a valid range
+      | view::remove_if([](auto&& elem) { return "yes" != elem["response"]; })      // filter out non-confirmed
+      | view::transform([](auto&& elem) { return elem["member"]["name"].dump(); })  // keep name as string
+      | ranges::to_vector                                                           // convert lazy range to vector - will be stored as rsvps
+      | action::shuffle(gen);                                                       // random shuffle vector elements.
 
    for (auto&& name : rsvps)
    {
-      cout << "And the winner is: " << name << "\n\n";
+      cout << "> And the winner is: " << name << "!\n> " << flush;
       std::string more;
-      cout << "Another? " << flush;
       cin >> more;
-      if ("yes" != more)
+      if ("more" != more)
          break;
    }
-
    return EXIT_SUCCESS;
+}
+catch (std::exception const& e)
+{
+   std::cerr << "Error: " << e.what() << std::endl;
+   return EXIT_FAILURE;
+}
+catch (...)
+{
+   std::cerr << "Unknown Error!" << std::endl;
+   return EXIT_FAILURE;
 }
