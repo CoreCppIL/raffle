@@ -23,7 +23,7 @@ If the chosen member is not present (despite the RSVP), type `more`<kbd>Enter ‚è
 
 1. Use git to clone and update the submodules;  
 2. Use CMake to build, providing it with the proper Boost paths;
-3. Do a short talk reviewing the application C++ code;
+3. Do a short talk reviewing/auditing the application C++ code;
 4. Run at your event to choose the raffle winner!
 
 ### Dependencies
@@ -43,3 +43,5 @@ Contributions and pull requests will be gladly accepted:
 - Any suggestions, remarks, ideas - please open and issue and/or make a PR.
 
 <p align="center">üé´</p>
+
+Finally, if you used this in a raffle, _please_ let [me](https://twitter.com/adishavit) know. It will make me very happy!
