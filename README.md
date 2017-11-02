@@ -1,4 +1,4 @@
-# C++ Meetup Raffle Name Picker 
+# C++ Meetup Raffle Name Picker
 
 A little expository C++ project for choosing raffle winners at C++ meetup events.  
 It fetches the names of all the event's RSVP members and randomly chooses a winner.
@@ -41,3 +41,5 @@ Contributions and pull requests will be gladly accepted:
 - Support for non-MSVC/Windows builds.
 - Allow event selection based on date, when there are more than one (currently chooses the first event).
 - Any suggestions, remarks, ideas - please open and issue and/or make a PR.
+
+<p align="center">🎫</p>
