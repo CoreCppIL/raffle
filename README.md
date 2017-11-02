@@ -9,10 +9,10 @@ It does *not* take into account any `+N` guests, or non-RSVP attendees.
 The code is designed to fit on a single slide (excluding HTTP/JSON libs).  
 Interesting C++ features used by the code include:
 - `filesystem::path`;
+- `std::string_literals`;
 - `std::mt19937` and `std::random_device`;
 - Ranges TS-ish usage, showing both `view`s and `action`s;
 - Networking TS-ish usage for fetching data
-
 
 ### Usage
 `> meetup_raffle <meetup.com API key> <Group URL Name>` 
@@ -35,6 +35,7 @@ If the chosen member is not present (despite the RSVP), type `more`<kbd>Enter ‚è
 
 ### Contribute
 
+The code is far from perfect and can surely be improved for both exposition and clarity.  
 Contributions and pull requests will be gladly accepted:
 
 - Support for non-MSVC/Windows builds.
