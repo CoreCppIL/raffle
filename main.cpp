@@ -1,51 +1,51 @@
 #include <random>
 #include <iostream>
 #include <filesystem>
+#include <thread>
+#include <chrono>
 #include "beast_https_get.hpp"
 #include "Range-V3-VS2015/include/range/v3/all.hpp"
-#include "json.hpp"
+
+using namespace ranges;
+using namespace std::string_literals;
+namespace fs = std::experimental::filesystem;
+
+using std::cout;
+using std::flush;
+using std::cin;
+using std::cerr;
+using std::endl;
 
 int main(int argc, char** argv) 
 {
-   using namespace ranges;
-   using namespace std::string_literals;
-   namespace fs = std::experimental::filesystem;
-
-   using std::cout;
-   using std::flush;
-   using std::cin;
-   using std::cerr;
-
    try
    {
       if (argc < 3)
-         return cout << "Usage: " << fs::path(argv[0]).filename() << " <member-id> <API key>\n", EXIT_SUCCESS;
-
-      std::string member_id = argv[1], api_key = argv[2];
-
-      auto rest_call = "/CoreCpp/events/244537670/rsvps?photo-host=public&only=member.name%2Cresponse"s;
-      auto body_json = https_get("api.meetup.com", rest_call + "&sig_id=" + member_id + "&sig=" + api_key);
-      if (body_json.empty())
-         throw std::runtime_error("MeetUp API REST call failed.");
-
-      auto json = nlohmann::json::parse(body_json);
-      if (json.find("errors") != json.end())
-         throw std::runtime_error("REST call error in JSON:" + json["errors"].dump());
+         return cout << "Usage: " << fs::path(argv[0]).filename() << " <API key> <Group Name>\n", EXIT_SUCCESS;
+      auto api_key = argv[1], urlname = argv[2];
+      cout << "Welcome to the " << urlname << " Meeting Raffle!\nFetching Meetup details." << endl;
+      auto meetup_rest_api_postfix = "&photo-host=public&sign=true&key="s + api_key;
+      auto events_json = https_get_json("api.meetup.com", "/"s + urlname + "/events?" + meetup_rest_api_postfix);
+      cout << "Fetching RSVP names for " << events_json.at(0)["name"] << endl;         // assume first event is the current one
+      std::string event_id = events_json.at(0)["id"];
+      auto rsvp_json   = https_get_json("api.meetup.com", "/"s + urlname + "/events/" + event_id + "/rsvps?" + meetup_rest_api_postfix);
+      if (rsvp_json.find("errors") != rsvp_json.end())
+         throw std::runtime_error("REST call error in JSON:" + rsvp_json["errors"].dump());
 
       std::mt19937 gen(std::random_device{}());
-      auto rsvps = json                                                                // json is a valid range
-         | view::remove_if([](auto&& elem) { return "yes" != elem["response"]; })      // filter out non-confirmed
+      auto rsvps = rsvp_json                                                           // json is a valid range
+         | view::remove_if([](auto&& elem) { return "yes" != elem["response"]; })      // filter out non-"yes" RSVP responses
          | view::transform([](auto&& elem) { return elem["member"]["name"].dump(); })  // keep name as string
          | ranges::to_vector                                                           // convert lazy range to vector - will be stored as rsvps
          | action::shuffle(gen);                                                       // random shuffle vector elements.
 
       for (auto&& name : rsvps)
       {
-         cout << "> And the winner is: " << name << "!\n> " << flush;
+         cout << "And the winner is: " << name << "!\n> " << flush;
          std::string more;
          cin >> more;
          if ("more" != more)
-            break;
+            return EXIT_SUCCESS;
       }
    }
    catch (std::exception const& e) { std::cerr << "Error: " << e.what() << std::endl; }

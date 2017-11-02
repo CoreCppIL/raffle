@@ -6,15 +6,16 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
-//#include <cstdlib>
 #include <iostream>
 #include <string>
+
+#include "json.hpp"
 
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
-std::string https_get(std::string const& host, std::string const& target)
+nlohmann::json https_get_json(std::string const& host, std::string const& target)
 {
    auto const port = "443";
 
@@ -70,7 +71,7 @@ std::string https_get(std::string const& host, std::string const& target)
       throw boost::system::system_error{ ec };
 
    // If we get here then the connection is closed gracefully
-   return std::move(res.body());
+   return nlohmann::json::parse(res.body());
 }
 
 
