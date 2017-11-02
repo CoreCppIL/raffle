@@ -1,8 +1,6 @@
 #include <random>
 #include <iostream>
 #include <filesystem>
-#include <thread>
-#include <chrono>
 #include "beast_https_get.hpp"
 #include "Range-V3-VS2015/include/range/v3/all.hpp"
 
@@ -23,7 +21,7 @@ int main(int argc, char** argv)
       if (argc < 3)
          return cout << "Usage: " << fs::path(argv[0]).filename() << " <API key> <Group Name>\n", EXIT_SUCCESS;
       auto api_key = argv[1], urlname = argv[2];
-      cout << "Welcome to the " << urlname << " Meeting Raffle!\nFetching Meetup details." << endl;
+      cout << "Welcome to the '" << urlname << "' Meeting Raffle!\nFetching Meetup details." << endl;
       auto meetup_rest_api_postfix = "&photo-host=public&sign=true&key="s + api_key;
       auto events_json = https_get_json("api.meetup.com", "/"s + urlname + "/events?" + meetup_rest_api_postfix);
       cout << "Fetching RSVP names for " << events_json.at(0)["name"] << endl;         // assume first event is the current one
@@ -34,7 +32,7 @@ int main(int argc, char** argv)
 
       std::mt19937 gen(std::random_device{}());
       auto rsvps = rsvp_json                                                           // json is a valid range
-         | view::remove_if([](auto&& elem) { return "yes" != elem["response"]; })      // filter out non-"yes" RSVP responses
+         | view::remove_if([](auto&& elem) { return "yes" != elem.at("response"); })   // filter out non-"yes" RSVP responses
          | view::transform([](auto&& elem) { return elem["member"]["name"].dump(); })  // keep name as string
          | ranges::to_vector                                                           // convert lazy range to vector - will be stored as rsvps
          | action::shuffle(gen);                                                       // random shuffle vector elements.
