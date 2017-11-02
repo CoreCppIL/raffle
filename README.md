@@ -1,9 +1,9 @@
 # C++ Meetup Raffle Name Picker 
 
-A little expository C++ project for choosing raffle winners at C++ meetup events.
+A little expository C++ project for choosing raffle winners at C++ meetup events.  
 It fetches the names of all the event's RSVP members and randomly chooses a winner.
 
-The winner is selected *only* from members that RSVPed "yes" for the event.
+The winner is selected *only* from members that RSVPed "yes" for the event.  
 It does *not* take into account any `+N` guests, or non-RSVP attendees.
 
 The code is designed to fit on a single slide (excluding HTTP/JSON libs).  
@@ -31,7 +31,7 @@ If the chosen member is not present (despite the RSVP), type `more`<kbd>Enter ‚è
 - [**nlohmann::json**](https://github.com/nlohmann/json): For JSON processing
 - [**Ranges-v3-VS2015**](https://github.com/Microsoft/Range-V3-VS2015): Because Ranges.
 
-**Beast** and **Ranges** are git submodules, **Boost** needs to be supplied externally and the single **JSON** file `json.hpp` is already in. When Beast is finally shipped with Boost and ranges are adopted into C++, they will no longer be needed as a separate dependencies, respectively. 
+**Beast** and **Ranges** are git submodules, **Boost** needs to be supplied externally and the single **JSON** file `json.hpp` is already in. When Beast is finally shipped with Boost and ranges are adopted into C++, they will no longer be needed as separate dependencies, respectively. 
 
 ### Contribute
 
