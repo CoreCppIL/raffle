@@ -7,9 +7,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(OpenSSL REQUIRED)
 
-set (CMAKE_CXX_STANDARD 11)
-
-add_subdirectory(libs/beast) 
+add_subdirectory(libs/beast)
  
 add_executable(meetup_raffle main.cpp 
 							 beast_https_get.hpp 
