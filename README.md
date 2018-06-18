@@ -15,7 +15,7 @@ Interesting C++ features used by the code include:
 - Networking TS-ish usage for fetching data
 
 ### Usage
-`> meetup_raffle <meetup.com API key> <Group URL Name>` 
+`> meetup_raffle <meetup.com API key> <Group URL Name> [More Group URL Names]` 
 
 If the chosen member is not present (despite the RSVP), type `more`<kbd>Enter ⏎</kbd> for another randomly chosen name.
 
@@ -27,11 +27,11 @@ If the chosen member is not present (despite the RSVP), type `more`<kbd>Enter �
 4. Run at your event to choose the raffle winner!
 
 ### Dependencies
-- [**Boost.Beast**](https://github.com/boostorg/beast) and [**Boost**](boost.org): Access the Meetup REST API.  
+- Boost.Beast from [**Boost**](boost.org): Access the Meetup REST API.  
 - [**nlohmann::json**](https://github.com/nlohmann/json): For JSON processing
 - [**Ranges-v3-VS2015**](https://github.com/Microsoft/Range-V3-VS2015): Because Ranges.
 
-**Beast** and **Ranges** are git submodules, **Boost** needs to be supplied externally and the single **JSON** file `json.hpp` is already in. When Beast is finally shipped with Boost and ranges are adopted into C++, they will no longer be needed as separate dependencies, respectively. 
+**Ranges** is a git submodules, **Beast** ships with **Boost** and needs to be supplied externally and the single **JSON** file `json.hpp` is already in. When Ranges are adopted into C++, they will no longer be needed as separate dependencies. 
 
 ### Contribute
 
@@ -44,4 +44,12 @@ Contributions and pull requests will be gladly accepted:
 
 <p align="center">🎫</p>
 
-Finally, if you used this in a raffle, _please_ let [me](https://twitter.com/adishavit) know. It will make me very happy!
+Finally, if you used this in a raffle, _please_ let [me](https://twitter.com/adishavit) know.   
+It will make me very happy!
+
+<p align="center">🎫</p>
+
+### In the Wild
+
+- [**Ben Deane**](https://twitter.com/ben_deane) presented a snippet from this code at his **"Best Presentation"** award winning [CppNow 2018](http://cppnow.org/history/2018/) presentation: [**"Easy to Use, Hard to Misuse: Declarative Style in C++"**](https://buff.ly/2lcJxcI)
+
