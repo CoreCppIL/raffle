@@ -3,6 +3,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/asio.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -26,7 +27,7 @@ nlohmann::json https_get_json(std::string const& host, std::string const& target
    ssl::context ctx{ ssl::context::sslv23_client };
 
    // This holds the root certificate used for verification
-   load_root_certificates(ctx);
+   // load_root_certificates(ctx);
 
    // These objects perform our I/O
    tcp::resolver resolver{ ios };
@@ -62,11 +63,8 @@ nlohmann::json https_get_json(std::string const& host, std::string const& target
    boost::system::error_code ec;
    stream.shutdown(ec);
    if (ec == boost::asio::error::eof)
-   {
-      // Rationale:
-      // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-      ec.assign(0, ec.category());
-   }
+      ec = {};
+
    if (ec)
       throw boost::system::system_error{ ec };
 

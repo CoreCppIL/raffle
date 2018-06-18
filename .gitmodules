@@ -1,6 +1,3 @@
-[submodule "libs/beast"]
-	path = libs/beast
-	url = git@github.com:boostorg/beast.git
 [submodule "libs/Range-V3-VS2015"]
 	path = libs/Range-V3-VS2015
 	url = git@github.com:Microsoft/Range-V3-VS2015.git
